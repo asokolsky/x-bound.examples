@@ -12,11 +12,30 @@ def Fibonacci( n ):
         return 1
     return Fibonacci(n-1) + Fibonacci(n-2) 
 
-cpus = 3
-n = 100
-print('Calculating Fibonacci ' + str( n ) + ' using ' + str(cpus) + 'CPUs')
-p = Pool( cpus )
-args = [n]*10
-f = p.map(Fibonacci, [n]*cpus)
-print('Fibonacci ' + str( n ) + ' == ' + str( f ) + ' * ' + str(cpus))
+def FibonacciWrap( n ):
+    try:
+        return Fibonacci( n )
+    except KeyboardInterrupt:
+        print( 'Process KeyboardInterrupt' )
+    except Exception as e:
+        print( 'Process caught: ' + str( e ) )
+    finally:
+        print( 'Process cleanup' )
+    return 0
 
+if __name__ == '__main__':
+    cpus = 5
+    n = 100
+    print('Calculating Fibonacci ' + str( n ) + ' using ' + str(cpus) + ' CPUs')
+    p = Pool( cpus )
+    try:
+        f = p.map( FibonacciWrap, [n] * cpus )
+        p.close()
+        p.join()
+        print( 'Fibonacci ' + str( n ) + ' == ' + str( f ) + ' * ' + str( cpus ) )
+    except KeyboardInterrupt:
+        print( 'Main KeyboardInterrupt' )
+    except Exception as e:
+        print( 'Main caught: ' + str( e ) )
+    finally:
+        print( 'Main cleanup' )

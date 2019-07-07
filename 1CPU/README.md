@@ -2,10 +2,12 @@
 
 This python test is CPU-bound.  Because of Python GIL only one CPU is used.
 
+# Linux on Intel Atom C3558
+
 ## HTOP
 
-This is what htop looks like.  Note one of the four CPUs available is maxed out.
-Load average tells that no more than 1.5 CPUs are used.
+This is what htop output looks like.  Note one of the four CPUs available is
+maxed out.  Load average tells that no more than 1.5 CPUs are used.
 
 ```
 htop -d 40 -u alex
@@ -78,3 +80,78 @@ procs -----------memory---------- ---swap-- -----io---- -system-- ------cpu-----
  1  0      0 2175764   2296 2698224    0    0     0     0 1338  858 29  0 71  0  0
  1  0      0 2175764   2296 2698224    0    0     0     0 1379  968 29  1 70  0  0
 ```
+
+# Windows on Intel i7-8750H
+
+## WMIC
+
+```
+C:\Users\asoko>wmic cpu get loadpercentage
+LoadPercentage
+2
+```
+
+## typeperf
+
+```
+C:\Users\asoko>typeperf "\Processor(_Total)\% Processor Time"
+
+"(PDH-CSV 4.0)","\\L07A97UF\Processor(_Total)\% Processor Time"
+"07/07/2019 13:36:25.480","9.220876"
+"07/07/2019 13:36:26.495","9.105775"
+"07/07/2019 13:36:27.503","10.956450"
+"07/07/2019 13:36:28.516","9.049064"
+"07/07/2019 13:36:29.533","10.180323"
+"07/07/2019 13:36:30.543","9.291024"
+"07/07/2019 13:36:31.560","9.528610"
+"07/07/2019 13:36:32.567","8.230706"
+"07/07/2019 13:36:33.581","8.628567"
+"07/07/2019 13:36:34.592","9.879079"
+"07/07/2019 13:36:35.609","8.671926"
+"07/07/2019 13:36:36.612","8.460848"
+"07/07/2019 13:36:37.625","9.102830"
+"07/07/2019 13:36:38.633","10.256026"
+"07/07/2019 13:36:39.636","9.196064"
+"07/07/2019 13:36:40.651","8.607710"
+"07/07/2019 13:36:41.655","9.748047"
+"07/07/2019 13:36:42.658","15.476312"
+
+The command completed successfully.
+```
+
+## TaskManager
+
+Task manager barely registers this load.  Overall CPU consumption is indicated
+as 6%.  Individual cores are barely loaded at all - at least none of them
+approaches 100%.  They have intermittent spikes which I have trouble
+attributing to anything.
+
+## TOP Equivalent
+
+[Script](https://superuser.com/questions/176624/linux-top-command-for-windows-powershell):
+```
+While(1) {  $p = get-counter '\Process(*)\% Processor Time'; cls; $p.CounterSamples | sort -des CookedValue | select -f 15 | ft -a}
+```
+
+Output:
+```
+Path                                                 InstanceName       CookedValue
+----                                                 ------------       -----------
+\\l07a97uf\process(_total)\% processor time          _total        1199.58538386979
+\\l07a97uf\process(idle)\% processor time            idle          1088.71228035422
+\\l07a97uf\process(python#2)\% processor time        python        100.093774007107
+\\l07a97uf\process(dwm)\% processor time             dwm            3.0798084309879
+\\l07a97uf\process(taskmgr)\% processor time         taskmgr        3.0798084309879
+\\l07a97uf\process(ctfmon)\% processor time          ctfmon        1.53990421549395
+\\l07a97uf\process(conhost#8)\% processor time       conhost       1.53990421549395
+\\l07a97uf\process(system)\% processor time          system        1.53990421549395
+\\l07a97uf\process(powermgr)\% processor time        powermgr                     0
+\\l07a97uf\process(webcompanion)\% processor time    webcompanion                 0
+\\l07a97uf\process(svchost#8)\% processor time       svchost                      0
+\\l07a97uf\process(rundll32)\% processor time        rundll32                     0
+\\l07a97uf\process(svchost#9)\% processor time       svchost                      0
+\\l07a97uf\process(runtimebroker#2)\% processor time runtimebroker                0
+\\l07a97uf\process(svchost#10)\% processor time      svchost                      0
+
+```
+
