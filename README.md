@@ -5,13 +5,15 @@ mostly command line utilities.  On Linux and Windows.
 
 ## Eamples of Resource-bound Apps
 
-1-cpu-bound
+[1-cpu-bound](./1CPU)
 
-cpu-bound
+[cpu-bound](./CPUs)
 
 ram-bound
 
 io-bound
+
+# Platforms
 
 ## Linux
 
