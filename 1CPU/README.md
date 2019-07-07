@@ -2,7 +2,7 @@
 
 This python test is CPU-bound.  Because of Python GIL only one CPU is used.
 
-# Linux on Intel Atom C3558
+# Linux on Atom C3558
 
 ## HTOP
 
@@ -81,7 +81,7 @@ procs -----------memory---------- ---swap-- -----io---- -system-- ------cpu-----
  1  0      0 2175764   2296 2698224    0    0     0     0 1379  968 29  1 70  0  0
 ```
 
-# Windows on Intel i7-8750H
+# Windows on i7-8750H
 
 ## WMIC
 

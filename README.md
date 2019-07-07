@@ -3,7 +3,7 @@
 Here are some examples of resource-bound apps and how to identify those using
 mostly command line utilities.  On Linux and Windows.
 
-## Eamples of Resource-bound Apps
+## Examples by Resource
 
 [1-cpu-bound](./1CPU)
 
