@@ -1,13 +1,23 @@
 import os
 
-test_folder = 'd:\\temp\\'
+# for Windows
+#test_folder = 'd:\\temp\\'
+# for RPi4 - seems dangerous to play with boot!  but...
+test_folder = '/boot/'
+# this one is on SSD
+#test_folder = '/home/alex/'
+
 test_repeats = 5
 
 kbytes = 1024
 mbytes = 1024 * kbytes
 gbytes = 1024 * mbytes
-test_file_size = 2 * gbytes
+#test_file_size = 1 * gbytes
+test_file_size = 100 * mbytes
 
+#
+# nothing to customize below...
+#
 try:
     O_BINARY = os.O_BINARY
 except:
@@ -49,6 +59,14 @@ def copy_file( srcfname, dstfname ) :
             pass
     return
 
+def delete_file( fname ):
+    try:
+        print( 'Removing', fname, '...' )
+        os.remove( fname )
+    except:
+        pass
+    return
+
 if __name__ == '__main__':
     fn1 = test_folder + 'test.me'
     fn2 = test_folder + 'test-copy.me'
@@ -59,20 +77,10 @@ if __name__ == '__main__':
             print( 'Reading & writing...' )
             copy_file( fn1, fn2 )
             #print( 'Done!' )
-            os.remove( fn2 )
-            os.remove( fn1 )
-
+            
     except KeyboardInterrupt:
         print( 'Main KeyboardInterrupt' )
     finally:
-        try:
-            print( 'Removing ' + fn1 )
-            os.remove( fn1 )
-        except:
-            pass
-        try:
-            print( 'Removing ' + fn2 )
-            os.remove( fn2 )
-        except:
-            pass
+        delete_file( fn1 )
+        delete_file( fn2 )
     pass

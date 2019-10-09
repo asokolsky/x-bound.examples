@@ -1,6 +1,12 @@
 # Example of a 1-CPU bound process.
 
 This python test is CPU-bound.  Because of Python GIL only one CPU is used.
+Launch the test like this:
+
+```
+alex@rpi4:~/Projects/x-bound.examples/1CPU $ python3 ./test.py 
+Calculating Fibonacci 100
+```
 
 # Linux on Atom C3558
 
@@ -154,4 +160,3 @@ Path                                                 InstanceName       CookedVa
 \\l07a97uf\process(svchost#10)\% processor time      svchost                      0
 
 ```
-

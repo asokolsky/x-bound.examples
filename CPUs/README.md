@@ -1,6 +1,12 @@
 # Example of a (Multiple) CPU bound process.
 
 This python test is CPU-bound and takes advantage of all the available CPUs. 
+Launch the test like this:
+
+```
+alex@rpi4:~/Projects/x-bound.examples/CPUs $ python3 ./test.py 
+Calculating Fibonacci 100 using 3 CPUs
+```
 
 # Linux on Intel Atom C3558
 

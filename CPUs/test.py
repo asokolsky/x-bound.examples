@@ -24,7 +24,7 @@ def FibonacciWrap( n ):
     return 0
 
 if __name__ == '__main__':
-    cpus = 5
+    cpus = 3
     n = 100
     print('Calculating Fibonacci ' + str( n ) + ' using ' + str(cpus) + ' CPUs')
     p = Pool( cpus )
