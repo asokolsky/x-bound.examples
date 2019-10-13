@@ -1,4 +1,19 @@
+#
+#
+#
+
+# # of CPUs to use in parallel
+cpus = 3
+# Fibbonacci number to calculate
+n = 50
+
+# nothing to customize below..
 from multiprocessing import Pool
+
+cachedResult = []
+for i in range(n + 1):
+    cachedResult.append( 0 )
+#print(len(cachedResult))
 
 def Fibonacci( n ): 
     if n < 0: 
@@ -10,7 +25,15 @@ def Fibonacci( n ):
     # Second Fibonacci number is 1 
     if n == 2: 
         return 1
-    return Fibonacci(n-1) + Fibonacci(n-2) 
+
+    global cachedResult
+    res = cachedResult[ n ]
+    if( res ):
+        return res
+    res = Fibonacci(n-1) + Fibonacci(n-2)
+    #cachedResult[ n ] = res
+    #print('Fibonacci', str( n ), '=>', str( res ))
+    return res
 
 def FibonacciWrap( n ):
     try:
@@ -18,24 +41,22 @@ def FibonacciWrap( n ):
     except KeyboardInterrupt:
         print( 'Process KeyboardInterrupt' )
     except Exception as e:
-        print( 'Process caught: ' + str( e ) )
+        print( 'Process caught:', str( e ) )
     finally:
         print( 'Process cleanup' )
     return 0
 
 if __name__ == '__main__':
-    cpus = 3
-    n = 100
-    print('Calculating Fibonacci ' + str( n ) + ' using ' + str(cpus) + ' CPUs')
+    print('Calculating Fibonacci', str( n ), 'using', str(cpus), ' CPUs')
     p = Pool( cpus )
     try:
         f = p.map( FibonacciWrap, [n] * cpus )
         p.close()
         p.join()
-        print( 'Fibonacci ' + str( n ) + ' == ' + str( f ) + ' * ' + str( cpus ) )
+        print( 'Fibonacci', str( n ), '==', str( f ), ' * ', str( cpus ) )
     except KeyboardInterrupt:
         print( 'Main KeyboardInterrupt' )
     except Exception as e:
-        print( 'Main caught: ' + str( e ) )
+        print( 'Main caught:', str( e ) )
     finally:
         print( 'Main cleanup' )

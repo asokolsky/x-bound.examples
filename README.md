@@ -12,7 +12,7 @@ utilities.  Both Linux and Windows are covered.
 
 ram-bound
 
-io-bound
+[io-bound](./IO)
 
 # Tested Configurations
 
