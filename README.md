@@ -1,7 +1,8 @@
 # Resource-bound Apps
 
-Here are some examples of resource-bound apps and how to identify those using
-mostly command line utilities.  On Linux and Windows.
+Here you will find examples of resource-bound applications along with
+recommendations on how to identify such cases using mostly command line
+utilities.  Both Linux and Windows are covered.
 
 ## Examples by Resource
 
