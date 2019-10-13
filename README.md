@@ -1,7 +1,7 @@
 # Resource-bound Apps
 
 Here you will find examples of resource-bound applications along with
-recommendations on how to identify such cases using mostly command line
+recommendations on how to identify the bottleneck using mostly command line
 utilities.  Both Linux and Windows are covered.
 
 ## Examples by Resource
