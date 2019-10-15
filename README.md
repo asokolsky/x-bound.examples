@@ -16,7 +16,7 @@ ram-bound
 
 # Tested Configurations
 
-| Param | RPi4 | Tiny Server | Workstation Laptop |
+|       | RPi4 | Tiny Server | Workstation Laptop |
 |-------|------|-------------|--------------------|
 | CPU | [Broadcom BCM2711](https://www.raspberrypi.org/products/raspberry-pi-4-model-b/specifications/) | [Intel Atom C3558](https://ark.intel.com/content/www/us/en/ark/products/97937/intel-atom-processor-c3558-8m-cache-up-to-2-20-ghz.html) | [Intel i7-8750H](https://ark.intel.com/content/www/us/en/ark/products/134906/intel-core-i7-8750h-processor-9m-cache-up-to-4-10-ghz.html) |
 | Cores/Threads | 4/4 | 4/4   | 6/12    |
