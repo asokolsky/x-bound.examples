@@ -19,7 +19,7 @@ iotop does a good job of showing the processes causing the IO.
 ```
 Total DISK READ:         0.00 B/s | Total DISK WRITE:         8.04 M/s
 Current DISK READ:       0.00 B/s | Current DISK WRITE:       0.00 B/s
-  TID  PRIO  USER     DISK READ  DISK WRITE  SWAPIN     IO>    COMMAND       
+  TID  PRIO  USER     DISK READ  DISK WRITE  SWAPIN     IO>    COMMAND
 19048 be/4 root        0.00 B/s    8.04 M/s  0.00 % 62.21 % python3 ./test.py
     1 be/4 root        0.00 B/s    0.00 B/s  0.00 %  0.00 % init splash
     2 be/4 root        0.00 B/s    0.00 B/s  0.00 %  0.00 % [kthreadd]
@@ -135,7 +135,76 @@ sda              0.00    0.00      0.00      0.00     0.00     0.00   0.00   0.0
 Notice above that the device mmcblk0 (my SD card) is 100% utilized.  Also note
 the fields %iowait and aqu-sz.
 
+# Linux Laptop
+
+From https://access.redhat.com/solutions/1160343
+
+A large file (such as an ISO file) will be read and written to /dev/null using dd.
+
+```
+alex@latitude:~/$ dd if=bigfile.mkv of=/dev/null bs=1M
+1263+1 records in
+1263+1 records out
+1324670521 bytes (1.3 GB, 1.2 GiB) copied, 3.16056 s, 419 MB/s
+```
+
+Thus creating an observable bytes-in load:
+
+```
+alex@latitude:~$ vmstat -w 1
+procs -----------------------memory---------------------- ---swap-- -----io---- -system-- --------cpu--------
+ r  b         swpd         free         buff        cache   si   so    bi    bo   in   cs  us  sy  id  wa  st
+ 2  0        90144       192612      2035288     10866428    0   11   178   864  662  397  12   5  83   0   0
+ 0  0        90144       197624      2035288     10860580    0    0     0     0 1530 3305   6   2  92   0   0
+ 0  0        90144       187816      2035320     10870248    0    0     0  1016 1897 3293   6   2  91   0   0
+ 0  0        90144       185556      2035320     10872864    0    0     0     0 1082 1972   4   2  94   0   0
+ 0  0        90144       184548      2035320     10872064    0    0     0     0  812 1362   2   8  90   0   0
+ 0  0        90144       184548      2035320     10871360    0    0     0     0  536  963   1   1  97   0   0
+ 0  0        90144       188832      2035320     10865824    0    0     0     0  543  942   2   0  98   0   0
+ 1  0        90144       189588      2035360     10866588    0    0     0     0  589  952   2   1  98   0   0
+ 1  0        90144       204540      2035360     10850844    0    0     0     0 1290 2766   4   2  94   0   0
+ 0  0        90144       199164      2035360     10855940    0    0     0     0 1329 2780   4   2  94   0   0
+ 0  0        90144       199416      2035360     10855932    0    0     0     0  585 1073   2   1  98   0   0
+ 2  0        93216       206448      2032648     10853460    0 3120 138244  3120 1634 3003   1   5  90   4   0
+ 0  1        93472       209176      2023892     10858656  136 9072 416904  9072 3559 6397   1  15  79   4   0
+ 1  1        95520       187212      2015764     10884536    0 10832 422400 10832 3236 6245   8  18  66   8   0
+ 0  0       105248       207124      2010384     10866920  116 20020 316332 20020 5835 11886   4  15  70  11   0
+ 1  0        94240       204936      2010392     10878804  308    0   308   228 1528 3216   6   4  90   0   0
+ 0  0        94240       204068      2010392     10879280    0    0     0     0  815 1894   3   2  96   0   0
+ 0  0        94240       206840      2010392     10876724    0    0     0     0  554  892   2   1  97   0   0
+ 0  0        94240       206336      2010392     10875764    0    0     0     0  670 1624   3   2  96   0   0
+```
+
+Reversing the direction of IO:
+
+```
+alex@latitude:~$ dd if=/dev/zero of=500MBfile bs=1M count=500 oflag=dsync
+500+0 records in
+500+0 records out
+524288000 bytes (524 MB, 500 MiB) copied, 4.9321 s, 106 MB/s
+```
+
+Also makes it observable with vmstat: 
+
+```
+alex@latitude:~$ vmstat -w 1
+procs -----------------------memory---------------------- ---swap-- -----io---- -system-- --------cpu--------
+ r  b         swpd         free         buff        cache   si   so    bi    bo   in   cs  us  sy  id  wa  st
+ 0  0        93984       182980      2006880     10914204    0   12   205   849  648  400  12   4  84   0   0
+ 0  0        93984       189252      2006888     10908472    0    0     0    32 1506 2950   6   2  93   0   0
+ 0  0        93984       182152      2006888     10917032    0    0     0     0 1820 3501   8   1  91   0   0
+ 0  0        93984       182208      2006888     10917160    0    0     0     0  515  876   1   1  99   0   0
+ 0  1        93984       693192      2007036     10404688    0    0     0 19896  896 1711   2   4  92   3   0
+ 1  1        93984       584736      2007856     10512056    0    0     8 105872 2082 6235   4   6  76  14   0
+ 0  1        93984       474152      2008680     10622460    0    0     8 106896 2685 8056   6   9  71  14   0
+ 1  1        93984       365300      2009508     10728840    0    0     4 107124 2466 9942   6   9  72  13   0
+ 1  0        93984       263740      2010316     10829944    0    0     4 105848 2248 9717   4  10  73  12   0
+ 1  0        93984       223616      2010268     10870420    0    0     0 78600 1607 5865   2   7  83   8   0
+ 1  0        93984       229496      2010268     10864440    0    0     0     0  863 1331   2   1  97   0   0
+ 0  0        93984       232352      2010276     10860348    0    0     0    36  718 1123   2   1  97   0   0
+```
 
 # Windows on i7-8750H
 
 Way too fast to notice anything...
+
