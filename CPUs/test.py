@@ -1,6 +1,6 @@
 from multiprocessing import Pool
 
-def Fibonacci( n ): 
+def Fibonacci( n: int ) -> int: 
     if n < 0: 
         print("Incorrect input")
         return 0
@@ -12,7 +12,7 @@ def Fibonacci( n ):
         return 1
     return Fibonacci(n-1) + Fibonacci(n-2) 
 
-def FibonacciWrap( n ):
+def FibonacciWrap( n: int ) -> int:
     try:
         return Fibonacci( n )
     except KeyboardInterrupt:
@@ -25,17 +25,20 @@ def FibonacciWrap( n ):
 
 if __name__ == '__main__':
     cpus = 5
-    n = 100
-    print('Calculating Fibonacci ' + str( n ) + ' using ' + str(cpus) + ' CPUs')
+    n = 40
+    print( f'Calculating Fibonacci {n} using {cpus} CPUs' )
     p = Pool( cpus )
     try:
         f = p.map( FibonacciWrap, [n] * cpus )
         p.close()
         p.join()
-        print( 'Fibonacci ' + str( n ) + ' == ' + str( f ) + ' * ' + str( cpus ) )
+        print( f'Fibonacci {n} => {f}  * {cpus}' )
+
     except KeyboardInterrupt:
         print( 'Main KeyboardInterrupt' )
+
     except Exception as e:
-        print( 'Main caught: ' + str( e ) )
+        print( 'Main caught: {e}' )
+
     finally:
         print( 'Main cleanup' )

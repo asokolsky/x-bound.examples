@@ -1,13 +1,28 @@
+from datetime import datetime
+from multiprocessing import Pool
 import os
+import sys
+from typing import List
 
+# test folder should have a triling (back) slash
+# for Windows
 test_folder = 'd:\\temp\\'
+# for RPi4 - seems dangerous to play with boot!  but...
+#test_folder = '/boot/'
+# this one is on SSD
+#test_folder = '/home/alex/'
+
 test_repeats = 5
 
 kbytes = 1024
 mbytes = 1024 * kbytes
 gbytes = 1024 * mbytes
-test_file_size = 2 * gbytes
+test_file_size = 1 * gbytes
+#test_file_size = 100 * mbytes
 
+#
+# nothing to customize below...
+#
 try:
     O_BINARY = os.O_BINARY
 except:
@@ -16,11 +31,21 @@ READ_FLAGS = os.O_RDONLY | O_BINARY
 WRITE_FLAGS = os.O_WRONLY | os.O_CREAT | os.O_TRUNC | O_BINARY
 BUFFER_SIZE = 1024 * 1024
 
-def create_file( fname, fsize ) : 
-    chunk = bytearray( test_file_size )
+def create_file( fname: str, fsize: int ) -> None:
+    '''
+    Create fsize big file named fname.
+    '''
+    print( f'Creating {fname} {fsize/mbytes} MBytes in size...' )
+    #chunk = bytearray( fsize )
+    chunk = os.urandom( fsize )
     try:
         f = os.open( fname, WRITE_FLAGS )
+        t0 = datetime.now()
         os.write( f, chunk )
+        dt = datetime.now() - t0
+        mbytes_per_sec = fsize / ( mbytes * dt.total_seconds() )
+        print( f'Wrote {fname} @ { int(mbytes_per_sec) } MBytes/sec' )
+
     finally:
         try:
             os.close(f)
@@ -28,7 +53,13 @@ def create_file( fname, fsize ) :
             pass
     return
 
-def copy_file( srcfname, dstfname ) :
+def copy_file( srcfname: str, dstfname: str ) -> None:
+    '''
+    Copy content of srcfname to dstfname.
+    '''
+    print( f'Copying {srcfname} to {dstfname}...' )
+    bytesCopied = 0
+    t0 = datetime.now()
     try:
         fsrc = os.open( srcfname, READ_FLAGS )
         stat = os.fstat( fsrc )
@@ -38,6 +69,7 @@ def copy_file( srcfname, dstfname ) :
             if not r:
                 break
             os.write(fdst, r)
+            bytesCopied += len( r )
     finally:
         try:
             os.close(fsrc)
@@ -47,32 +79,63 @@ def copy_file( srcfname, dstfname ) :
             os.close(fdst)
         except:
             pass
+    dt = datetime.now() - t0
+    mbytes_per_sec = bytesCopied / ( mbytes * dt.total_seconds() )
+    print( f'Copied {srcfname} to {dstfname} @ { int(mbytes_per_sec) } MBytes/sec' )
     return
 
-if __name__ == '__main__':
-    fn1 = test_folder + 'test.me'
-    fn2 = test_folder + 'test-copy.me'
+def delete_files( *fnames: List[ str ] ) -> None:
+    '''
+    Delete files
+    '''
+    fns = ', '.join( fnames )
+    print( f'Removing {fns}...' )
+    for fname in fnames:
+        try:
+            os.remove( fname )
+        except:
+            pass
+    return
+
+def runner( i, test_repeats ):
+    fn1 = None
+    fn2 = None
     try:
         for x in range(0, test_repeats):
-            print( 'Writing...' )
+            fn1 = f'{test_folder}test{i}.me'
+            fn2 = f'{test_folder}test{i}-copy.me'
             create_file( fn1, test_file_size )
-            print( 'Reading & writing...' )
             copy_file( fn1, fn2 )
-            #print( 'Done!' )
-            os.remove( fn2 )
-            os.remove( fn1 )
+            delete_files( fn1, fn2 )
+            fn1 = None
+            fn2 = None
+        return 0
+
+    except KeyboardInterrupt:
+        print( f'Runner {i} KeyboardInterrupt' )
+
+    finally:
+        if fn1 is not None:
+            delete_files( fn1, fn2 )
+
+    return 1
+
+if __name__ == '__main__':
+    cpus = 1
+    print( f'Generating IO using {cpus} proceses...' )
+    p = Pool( cpus )
+    try:
+        args = [ (i, test_repeats) for i in range(cpus) ]
+        f = p.starmap( runner, args )
+        p.close()
+        p.join()
+        print( f'runner => {f}  * {cpus}' )
 
     except KeyboardInterrupt:
         print( 'Main KeyboardInterrupt' )
+
+    except Exception as e:
+        print( f'Main caught: {e}' )
+
     finally:
-        try:
-            print( 'Removing ' + fn1 )
-            os.remove( fn1 )
-        except:
-            pass
-        try:
-            print( 'Removing ' + fn2 )
-            os.remove( fn2 )
-        except:
-            pass
-    pass
+        print( 'Main cleanup' )
