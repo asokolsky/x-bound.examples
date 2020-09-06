@@ -19,6 +19,7 @@ mbytes = 1024 * kbytes
 gbytes = 1024 * mbytes
 test_file_size = 1 * gbytes
 #test_file_size = 100 * mbytes
+BUFFER_SIZE = 100 * mbytes
 
 #
 # nothing to customize below...
@@ -29,7 +30,6 @@ except:
     O_BINARY = 0
 READ_FLAGS = os.O_RDONLY | O_BINARY
 WRITE_FLAGS = os.O_WRONLY | os.O_CREAT | os.O_TRUNC | O_BINARY
-BUFFER_SIZE = 1024 * 1024
 
 def create_file( fname: str, fsize: int ) -> None:
     '''
@@ -121,7 +121,7 @@ def runner( i, test_repeats ):
     return 1
 
 if __name__ == '__main__':
-    cpus = 1
+    cpus = 3
     print( f'Generating IO using {cpus} proceses...' )
     p = Pool( cpus )
     try:
@@ -138,4 +138,4 @@ if __name__ == '__main__':
         print( f'Main caught: {e}' )
 
     finally:
-        print( 'Main cleanup' )
+        pass
