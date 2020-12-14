@@ -1,5 +1,6 @@
+from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime
-from multiprocessing import Pool
+#from multiprocessing import Pool
 import os
 import sys
 from typing import List
@@ -35,34 +36,51 @@ except:
 READ_FLAGS = os.O_RDONLY | O_BINARY
 WRITE_FLAGS = os.O_WRONLY | os.O_CREAT | os.O_TRUNC | O_BINARY
 
+global abort_abort_abort
+abort_abort_abort = False
+
 def create_file( fname: str, fsize: int ) -> None:
     '''
     Create fsize big file named fname and init it with random data.
     '''
-    print( f'Creating {fname} {fsize/mbytes} MBytes in size...' )
-    t0 = datetime.now()
-    #chunk = bytearray( fsize )
-    chunk = os.urandom( fsize )
+    global abort_abort_abort
+    if abort_abort_abort:
+        return
 
+    print( f'Creating {fname} {fsize/mbytes} MBytes in size...' )
     try:
         f = os.open( fname, WRITE_FLAGS )
-        os.write( f, chunk )
+        if abort_abort_abort:
+            return
+        t0 = datetime.now()
+        written = 0
+        while written < fsize and  not abort_abort_abort:
+            towrite = fsize - written
+            if towrite > BUFFER_SIZE:
+                towrite = BUFFER_SIZE
+            chunk = os.urandom( towrite )
+            os.write( f, chunk )
+            written += towrite
+
+        dt = datetime.now() - t0
+        mbytes_per_sec = written / ( mbytes * dt.total_seconds() )
+        print( f'Wrote {fname} @ { int(mbytes_per_sec) } MBytes/sec' )
 
     finally:
         try:
             os.close(f)
         except:
             pass
-
-    dt = datetime.now() - t0
-    mbytes_per_sec = fsize / ( mbytes * dt.total_seconds() )
-    print( f'Wrote {fname} @ { int(mbytes_per_sec) } MBytes/sec' )
     return
 
 def copy_file( srcfname: str, dstfname: str ) -> None:
     '''
     Copy content of srcfname to dstfname.
     '''
+    global abort_abort_abort
+    if abort_abort_abort:
+        return
+
     print( f'Copying {srcfname} to {dstfname}...' )
     bytesCopied = 0
     t0 = datetime.now()
@@ -70,7 +88,7 @@ def copy_file( srcfname: str, dstfname: str ) -> None:
         fsrc = os.open( srcfname, READ_FLAGS )
         stat = os.fstat( fsrc )
         fdst = os.open( dstfname, WRITE_FLAGS, stat.st_mode )
-        while True:
+        while not abort_abort_abort:
             r = os.read(fsrc, BUFFER_SIZE)
             if not r:
                 break
@@ -104,13 +122,18 @@ def delete_files( *fnames: List[ str ] ) -> None:
     return
 
 def runner( i, test_repeats ):
+    global abort_abort_abort
     fn1 = None
     fn2 = None
     try:
         for x in range(0, test_repeats):
+            if abort_abort_abort:
+                break
             fn1 = f'{test_folder}test{i}.me'
             fn2 = f'{test_folder}test{i}-copy.me'
             create_file( fn1, test_file_size )
+            if abort_abort_abort:
+                break
             copy_file( fn1, fn2 )
             delete_files( fn1, fn2 )
             fn1 = None
@@ -127,21 +150,23 @@ def runner( i, test_repeats ):
     return 1
 
 if __name__ == '__main__':
-    print( f'Generating IO using {cpus} proceses...' )
-    p = Pool( cpus )
+    print( f'Generating IO using {cpus} threads...' )
+    e = ThreadPoolExecutor( max_workers=cpus, thread_name_prefix='io_worker' )
     t0 = datetime.now()
     try:
-        args = [ (i, test_repeats) for i in range(cpus) ]
-        f = p.starmap( runner, args )
-        p.close()
-        p.join()
-        print( f'runner => {f}  * {cpus}' )
+        futures = [ e.submit( runner, i, test_repeats) for i in range(cpus) ]
+        res = [ f.result() for f in futures ]
+        e.shutdown( wait=True )
+        print( f'runner => {res}' )
 
     except KeyboardInterrupt:
         print( 'Main KeyboardInterrupt' )
+        abort_abort_abort = True
+        e.shutdown( wait=False )
 
     except Exception as e:
         print( f'Main caught: {e}' )
+        e.shutdown( wait=False )
 
     finally:
         dt = datetime.now() - t0
